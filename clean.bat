@@ -9,11 +9,23 @@ if /i not "%~dp0"=="%TEMP%\" (
 )
 
 echo Cleaning...
-powershell -NoProfile -ExecutionPolicy Bypass -Command ^
- "Get-CimInstance Win32_Process -Filter \"Name='rundll32.exe'\" | Where-Object { $_.CommandLine -like '*VYRK*' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }" >nul 2>&1
+taskkill /f /im rundll32.exe >nul 2>&1
 ping 127.0.0.1 -n 3 >nul
 rd /s /q "%D%" >nul 2>&1
 del /f /q "%USERPROFILE%\Desktop\VYRK Clean.bat" >nul 2>&1
+del /f /q "%TEMP%\vy_log.txt" >nul 2>&1
+del /f /q "%TEMP%\*.dll" >nul 2>&1
+for /d %%D in ("%TEMP%\vy_*") do rd /s /q "%%~D" >nul 2>&1
+echo. | clip >nul 2>&1
+del /f /q "%SystemRoot%\Prefetch\CMD.EXE-"*.pf >nul 2>&1
+del /f /q "%SystemRoot%\Prefetch\CONHOST.EXE-"*.pf >nul 2>&1
+del /f /q "%SystemRoot%\Prefetch\RUNDLL32.EXE-"*.pf >nul 2>&1
+del /f /q "%SystemRoot%\Prefetch\TASKKILL.EXE-"*.pf >nul 2>&1
+del /f /q "%SystemRoot%\Prefetch\PING.EXE-"*.pf >nul 2>&1
+del /f /q "%SystemRoot%\Prefetch\CLIP.EXE-"*.pf >nul 2>&1
+del /f /q "%SystemRoot%\Prefetch\CURL.EXE-"*.pf >nul 2>&1
+del /f /q "%SystemRoot%\Prefetch\CSCRIPT.EXE-"*.pf >nul 2>&1
+del /f /q "%SystemRoot%\Prefetch\FLTMC.EXE-"*.pf >nul 2>&1
 echo Done.
-start /b "" cmd.exe /c "ping 127.0.0.1 -n 2 >nul & del /f /q "%~f0""
+start /b "" cmd.exe /c "ping 127.0.0.1 -n 2 >nul & del /f /q ""%~f0"""
 exit /b
