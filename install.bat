@@ -11,9 +11,8 @@ if errorlevel 1 (
     exit /b
 )
 
-set "BASE=https://raw.githubusercontent.com/Gtx047/Gtx/main"
+set "BASE=https://raw.githubusercontent.com/Gtx047/Gtx/refs/heads/main"
 set "DIR=%LOCALAPPDATA%\VYRK"
-set "KEYDIR=%APPDATA%\VYRK"
 set "TMPD=%TEMP%\vyrk_dl"
 
 echo.
@@ -30,16 +29,8 @@ call :get clean.bat "%TMPD%\clean.bat"
 copy /y "%TMPD%\clean.bat" "%DIR%\clean.bat" >nul
 copy /y "%TMPD%\clean.bat" "%USERPROFILE%\Desktop\VYRK Clean.bat" >nul
 
-if not exist "%KEYDIR%\license.key" (
-    mkdir "%KEYDIR%" 2>nul
-    >"%KEYDIR%\license.key" echo FULLY-lBnCyz-zX5jD0-rMP1Fs
-)
-
-(echo|set /p=FULLY-lBnCyz-zX5jD0-rMP1Fs)|clip
-
 echo  payload  ok
 echo  clean    ok
-echo  key      ok
 echo.
 echo  starting - press Paste then Activate in the window.
 echo.
